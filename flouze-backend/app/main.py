@@ -39,10 +39,12 @@ app.add_middleware(
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 
-from app.api.v1 import auth, users  # noqa: E402 — import after app creation
+from app.api.v1 import auth, categories, expenses, users  # noqa: E402
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
+app.include_router(categories.router, prefix="/api/v1")
+app.include_router(expenses.router, prefix="/api/v1")
 
 
 # ── Health ───────────────────────────────────────────────────────────────────
