@@ -1,0 +1,27 @@
+# Environment
+.env
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Node / Frontend
+node_modules/
+flouze-frontend/dist/
+
+# Exports
+flouze-backend/exports/
+
+# IDE
+.idea/
+.vscode/
+*.swp
