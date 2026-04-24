@@ -39,7 +39,7 @@ app.add_middleware(
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 
-from app.api.v1 import auth, budgets, categories, dashboard, expenses, spaces, users  # noqa: E402
+from app.api.v1 import auth, budgets, categories, dashboard, expenses, notifications, spaces, users, ws  # noqa: E402
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
@@ -48,6 +48,8 @@ app.include_router(expenses.router, prefix="/api/v1")
 app.include_router(spaces.router, prefix="/api/v1")
 app.include_router(budgets.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(ws.router, prefix="/api/v1")
 
 
 # ── Health ───────────────────────────────────────────────────────────────────

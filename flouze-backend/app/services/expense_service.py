@@ -3,10 +3,11 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import HTTPException
-from sqlalchemy import and_, extract, or_, select
+from sqlalchemy import and_, extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.redis import get_redis
+from app.models.budget import Budget
 from app.models.expense import Expense
 from app.models.space import SpaceMember
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
@@ -90,6 +91,7 @@ async def create_expense(
     await db.commit()
     await db.refresh(expense)
     await _invalidate_dashboard_cache(user_id)
+    await _check_budget_alert(db, user_id, expense)
     return expense
 
 
@@ -146,3 +148,55 @@ async def _invalidate_dashboard_cache(user_id: uuid.UUID) -> None:
     keys = await redis.keys(f"dash:{user_id}:*")
     if keys:
         await redis.delete(*keys)
+
+
+async def _check_budget_alert(
+    db: AsyncSession, user_id: uuid.UUID, expense: Expense
+) -> None:
+    if expense.category_id is None:
+        return
+
+    month = expense.date.strftime("%Y-%m")
+    budget = (
+        await db.execute(
+            select(Budget).where(
+                and_(
+                    Budget.user_id == user_id,
+                    Budget.category_id == expense.category_id,
+                    Budget.month == month,
+                )
+            )
+        )
+    ).scalar_one_or_none()
+
+    if budget is None:
+        return
+
+    total = (
+        await db.execute(
+            select(func.sum(Expense.amount_mad)).where(
+                and_(
+                    Expense.deleted_at.is_(None),
+                    Expense.user_id == user_id,
+                    Expense.category_id == expense.category_id,
+                    extract("year", Expense.date) == expense.date.year,
+                    extract("month", Expense.date) == expense.date.month,
+                )
+            )
+        )
+    ).scalar() or Decimal("0")
+
+    if Decimal(str(total)) > budget.amount:
+        from app.services.notification_service import create_notification
+
+        await create_notification(
+            db,
+            user_id,
+            "BUDGET_ALERT",
+            {
+                "category_id": str(expense.category_id),
+                "budget": str(budget.amount),
+                "spent": str(total),
+                "month": month,
+            },
+        )
