@@ -13,7 +13,10 @@ from app.core.redis import check_redis_connection
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.core.scheduler import start_scheduler, stop_scheduler
+    start_scheduler()
     yield
+    stop_scheduler()
 
 
 app = FastAPI(
@@ -39,7 +42,7 @@ app.add_middleware(
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 
-from app.api.v1 import auth, budgets, categories, dashboard, expenses, notifications, spaces, users, ws  # noqa: E402
+from app.api.v1 import auth, budgets, categories, dashboard, expenses, notifications, recurring, spaces, users, ws  # noqa: E402
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
@@ -49,6 +52,7 @@ app.include_router(spaces.router, prefix="/api/v1")
 app.include_router(budgets.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(recurring.router, prefix="/api/v1")
 app.include_router(ws.router, prefix="/api/v1")
 
 
