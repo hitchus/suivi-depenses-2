@@ -1,15 +1,45 @@
 import uuid
+from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
-from app.services import expense_service
+from app.services import expense_service, export_service
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
+
+
+@router.get("/export")
+async def export_expenses(
+    format: str = "xlsx",
+    month: str | None = None,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    m = month or date.today().strftime("%Y-%m")
+    fmt = format.lower()
+    if fmt not in ("xlsx", "pdf"):
+        raise HTTPException(400, "format doit être 'xlsx' ou 'pdf'")
+
+    if fmt == "xlsx":
+        content = await export_service.generate_excel(db, current_user.id, m)
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="flouze_{m}.xlsx"'},
+        )
+    else:
+        content = await export_service.generate_pdf(db, current_user.id, m)
+        return Response(
+            content=content,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="flouze_{m}.pdf"'},
+        )
 
 
 @router.get("", response_model=list[ExpenseResponse])

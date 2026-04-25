@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 12px; color: #1a1a2e; padding: 32px; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 2px solid #2d5f3f; padding-bottom: 12px; }
+  header h1 { font-size: 22px; font-weight: 700; color: #2d5f3f; }
+  header .meta { text-align: right; color: #555; font-size: 11px; }
+
+  .summary { display: flex; gap: 16px; margin-bottom: 24px; }
+  .stat { flex: 1; background: #eaf3de; border-radius: 8px; padding: 12px 16px; }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #555; }
+  .stat .value { font-size: 18px; font-weight: 700; color: #2d5f3f; margin-top: 2px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: #2d5f3f; color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  tbody tr:nth-child(even) { background: #f8fdf4; }
+  tbody td { padding: 7px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+  .amount { text-align: right; font-weight: 600; }
+  .amount-mad { text-align: right; color: #555; font-size: 11px; }
+  .note { color: #777; font-style: italic; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  tfoot td { padding: 8px 10px; font-weight: 700; background: #eaf3de; }
+  tfoot .total-label { text-transform: uppercase; font-size: 11px; color: #555; }
+
+  footer { margin-top: 24px; font-size: 10px; color: #aaa; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Flouze — Rapport de dépenses</h1>
+    <div style="color:#555;font-size:11px;margin-top:4px;">{{ user_name }}</div>
+  </div>
+  <div class="meta">
+    <div>Période : <strong>{{ month }}</strong></div>
+    <div>Généré le {{ generated_at }}</div>
+  </div>
+</header>
+
+<div class="summary">
+  <div class="stat">
+    <div class="label">Total dépenses</div>
+    <div class="value">{{ total }} {{ currency }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Nombre de transactions</div>
+    <div class="value">{{ expenses | length }}</div>
+  </div>
+  {% if budget %}
+  <div class="stat">
+    <div class="label">Budget mensuel</div>
+    <div class="value">{{ budget }} {{ currency }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Restant</div>
+    <div class="value" style="color: {% if restant < 0 %}#c0392b{% else %}#2d5f3f{% endif %}">{{ restant }} {{ currency }}</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if expenses %}
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Titre</th>
+      <th>Catégorie</th>
+      <th style="text-align:right">Montant</th>
+      <th style="text-align:right">En {{ currency }}</th>
+      <th>Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in expenses %}
+    <tr>
+      <td>{{ e.date }}</td>
+      <td>{{ e.title }}</td>
+      <td>{{ e.category or "—" }}</td>
+      <td class="amount">{{ e.amount }} {{ e.currency }}</td>
+      <td class="amount-mad">{{ e.amount_mad }}</td>
+      <td class="note">{{ e.note or "" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" class="total-label">Total</td>
+      <td class="amount">{{ total }}</td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+{% else %}
+<p style="text-align:center;color:#aaa;padding:40px 0;">Aucune dépense pour cette période.</p>
+{% endif %}
+
+<footer>Flouze · rapport généré automatiquement</footer>
+</body>
+</html>
