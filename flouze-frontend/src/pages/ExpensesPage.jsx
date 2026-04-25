@@ -3,6 +3,19 @@ import Topbar from '../components/layout/Topbar'
 import client from '../api/client'
 import { useUiStore } from '../store/uiStore'
 
+async function downloadExport(month, format = 'xlsx') {
+  const { data } = await client.get('/expenses/export', {
+    params: { format, month },
+    responseType: 'blob',
+  })
+  const url = URL.createObjectURL(data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `flouze_${month}.${format}`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 function currentMonth() {
@@ -174,7 +187,19 @@ export default function ExpensesPage() {
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
   const [modal, setModal]   = useState(null) // null | { type: 'add'|'edit'|'delete', expense? }
+  const [exporting, setExporting] = useState(false)
   const { toast } = useUiStore()
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      await downloadExport(month)
+    } catch {
+      toast('Erreur lors de l\'export', 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
   const searchTimer = useRef(null)
 
   // Load categories once
@@ -233,9 +258,15 @@ export default function ExpensesPage() {
       <Topbar
         title="Dépenses"
         actions={
-          <button className="btn btn-primary" onClick={() => setModal({ type: 'add' })}>
-            <IconPlus /> Nouvelle dépense
-          </button>
+          <>
+            <button className="btn" onClick={handleExport} disabled={exporting} title="Télécharger XLSX">
+              {exporting ? <span className="spinner" style={{ width: 13, height: 13 }} /> : <IconDownload />}
+              Export
+            </button>
+            <button className="btn btn-primary" onClick={() => setModal({ type: 'add' })}>
+              <IconPlus /> Nouvelle dépense
+            </button>
+          </>
         }
       />
 
@@ -363,8 +394,9 @@ const thStyle    = { fontSize: 11, fontWeight: 500, color: 'var(--text3)', textT
 const trowStyle  = { display: 'grid', gridTemplateColumns: '34px 1fr 120px 90px 110px 100px 68px', alignItems: 'center', gap: 14, padding: '11px 16px', borderBottom: '1px solid var(--border)' }
 const searchBoxStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 8, border: '1px solid var(--border2)', background: 'var(--surface)', color: 'var(--text2)' }
 
-function IconPlus()  { return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg> }
-function IconEdit()  { return <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> }
-function IconTrash() { return <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M3 5h10M6 5V3h4v2M6 8v4M10 8v4M4 5l1 9h6l1-9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> }
-function IconSearch(){ return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> }
-function IconX()     { return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg> }
+function IconPlus()     { return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg> }
+function IconEdit()     { return <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> }
+function IconTrash()    { return <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M3 5h10M6 5V3h4v2M6 8v4M10 8v4M4 5l1 9h6l1-9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> }
+function IconSearch()   { return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> }
+function IconX()        { return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg> }
+function IconDownload() { return <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 3v7M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 12h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> }
