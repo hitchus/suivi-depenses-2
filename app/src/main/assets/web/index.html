@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BydCam</title>
+  <link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+  <header>
+    <h1>🎥 BydCam</h1>
+    <div id="status-bar">
+      <span id="badge-recording" class="badge off">● Enregistrement</span>
+      <span id="badge-sentry"    class="badge off">🛡 Sentinelle</span>
+      <span id="badge-storage"   class="badge info">💾 --</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Section enregistrement conduite -->
+    <section class="card">
+      <h2>Enregistrement conduite</h2>
+      <div class="mode-grid">
+        <button class="mode-btn" data-mode="CONTINUOUS">Continu</button>
+        <button class="mode-btn" data-mode="DRIVE_MODE">Conduite seule</button>
+        <button class="mode-btn" data-mode="PROXIMITY_GUARD">Radar proximité</button>
+        <button class="mode-btn" data-mode="NONE">Désactivé</button>
+      </div>
+    </section>
+
+    <!-- Section sentinelle -->
+    <section class="card">
+      <h2>Sentinelle (arrêt)</h2>
+      <div class="row">
+        <label>Sensibilité</label>
+        <input type="range" id="sensitivity" min="5" max="50" value="15" step="1">
+        <span id="sensitivity-val">15</span>
+      </div>
+      <div class="row">
+        <button id="btn-sentry-on"  class="btn-green">Activer</button>
+        <button id="btn-sentry-off" class="btn-red">Désactiver</button>
+      </div>
+    </section>
+
+    <!-- Section stockage -->
+    <section class="card">
+      <h2>Stockage</h2>
+      <div id="storage-info">Chargement...</div>
+      <button id="btn-cleanup" class="btn-outline">Nettoyer maintenant</button>
+    </section>
+
+    <!-- Section clips -->
+    <section class="card">
+      <h2>Clips récents</h2>
+      <ul id="clip-list"></ul>
+    </section>
+  </main>
+
+  <script src="/web/app.js"></script>
+</body>
+</html>
