@@ -60,6 +60,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Activité diagnostic Binder BYD (debug uniquement) -->
+        <activity
+            android:name=".diag.DiagnosticActivity"
+            android:exported="true"
+            android:label="BydCam Diag"
+            android:screenOrientation="landscape" />
+
         <!-- Service foreground principal (caméra + enregistrement) -->
         <service
             android:name=".services.CameraService"
